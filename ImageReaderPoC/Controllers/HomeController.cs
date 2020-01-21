@@ -19,9 +19,9 @@ namespace ImageReaderPoC.Controllers
 {
     public class HomeController : Controller
     {
-        public ActionResult Index()
+        public ActionResult Index(string id)
         {
-            // Pass a list of blob URIs in ViewBag
+            // Pass a list of blob URIs and captions in ViewBag
             CloudStorageAccount account = CloudStorageAccount.Parse(ConfigurationManager.AppSettings["StorageConnectionString"]);
             CloudBlobClient client = account.CreateCloudBlobClient();
             CloudBlobContainer container = client.GetContainerReference("photos");
@@ -34,18 +34,23 @@ namespace ImageReaderPoC.Controllers
                 if (blob != null)
                 {
                     blob.FetchAttributes(); // Get blob metadata
-                    var caption = blob.Metadata.ContainsKey("Caption") ? blob.Metadata["Caption"] : blob.Name;
 
-                    blobs.Add(new BlobInfo()
+                    if (String.IsNullOrEmpty(id) || HasMatchingMetadata(blob, id))
                     {
-                        ImageUri = blob.Uri.ToString(),
-                        ThumbnailUri = blob.Uri.ToString().Replace("/photos/", "/thumbnails/"),
-                        Caption = caption
-                    });
+                        var caption = blob.Metadata.ContainsKey("Caption") ? blob.Metadata["Caption"] : blob.Name;
+
+                        blobs.Add(new BlobInfo()
+                        {
+                            ImageUri = blob.Uri.ToString(),
+                            ThumbnailUri = blob.Uri.ToString().Replace("/photos/", "/thumbnails/"),
+                            Caption = caption
+                        });
+                    }
                 }
             }
 
             ViewBag.Blobs = blobs.ToArray();
+            ViewBag.Search = id; // Prevent search box from losing its content
             return View();
         }
 
@@ -120,11 +125,28 @@ namespace ImageReaderPoC.Controllers
             return View();
         }
 
+        [HttpPost]
+        public ActionResult Search(string term)
+        {
+            return RedirectToAction("Index", new { id = term });
+        }
+
         public ActionResult Contact()
         {
             ViewBag.Message = "Your contact page.";
 
             return View();
+        }
+
+        private bool HasMatchingMetadata(CloudBlockBlob blob, string term)
+        {
+            foreach (var item in blob.Metadata)
+            {
+                if (item.Key.StartsWith("Tag") && item.Value.Equals(term, StringComparison.InvariantCultureIgnoreCase))
+                    return true;
+            }
+
+            return false;
         }
     }
 }
