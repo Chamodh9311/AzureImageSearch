@@ -10,6 +10,7 @@ using Microsoft.WindowsAzure.Storage.Blob;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Data.SqlClient;
 using System.IO;
 using System.Threading.Tasks;
 using System.Web;
@@ -105,6 +106,10 @@ namespace ImageReaderPoC.Controllers
                             container = client.GetContainerReference("thumbnails");
                             CloudBlockBlob thumbnail = container.GetBlockBlobReference(Path.GetFileName(file.FileName));
                             await thumbnail.UploadFromStreamAsync(outputStream);
+
+                            //Insert to Sql
+                            InsertToSQL(file.FileName);
+
                         }
                     }
                     catch (Exception ex)
@@ -118,10 +123,27 @@ namespace ImageReaderPoC.Controllers
             return RedirectToAction("Index");
         }
 
+        private void InsertToSQL(string metaData)
+        {
+            try
+            {
+                SqlConnection conn = new SqlConnection("Data source=visionapitest.database.windows.net; Database=visiondemoapi;User Id=chetlk;Password=Fazu3140");
+                conn.Open();
+                SqlCommand command = new SqlCommand("insert into visiondemoapi (MetaData) values (@MetaData)", conn);
+                command.Parameters.AddWithValue("@MetaData", metaData);
+                command.ExecuteNonQuery();
+                Console.WriteLine("Inserting Data Successfully");
+                conn.Close();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception Occre while creating table:" + e.Message + "\t" + e.GetType());
+            }
+            Console.ReadKey();
+        }
+
         public ActionResult About()
         {
-            ViewBag.Message = "Your application description page.";
-
             return View();
         }
 
