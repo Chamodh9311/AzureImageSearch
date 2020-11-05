@@ -140,7 +140,6 @@ namespace ImageReaderPoC.Controllers
                 TempData["Message"] = e.Message;
                 //Console.WriteLine("Exception Occre while creating table:" + e.Message + "\t" + e.GetType());
             }
-            Console.ReadKey();
         }
 
         public ActionResult About()
