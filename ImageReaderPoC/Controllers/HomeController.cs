@@ -132,7 +132,7 @@ namespace ImageReaderPoC.Controllers
                 SqlCommand command = new SqlCommand("insert into visiondemoapi (MetaData) values (@MetaData)", conn);
                 command.Parameters.AddWithValue("@MetaData", metaData);
                 command.ExecuteNonQuery();
-                Console.WriteLine("Inserting Data Successfully");
+                //Console.WriteLine("Inserting Data Successfully");
                 conn.Close();
             }
             catch (Exception e)
