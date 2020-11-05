@@ -137,7 +137,8 @@ namespace ImageReaderPoC.Controllers
             }
             catch (Exception e)
             {
-                Console.WriteLine("Exception Occre while creating table:" + e.Message + "\t" + e.GetType());
+                TempData["Message"] = e.Message;
+                //Console.WriteLine("Exception Occre while creating table:" + e.Message + "\t" + e.GetType());
             }
             Console.ReadKey();
         }
